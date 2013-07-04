@@ -3,7 +3,9 @@
  *
  *       Filename:  NewtonGirardFormulae.h
  *
- *    Description:  
+ *    Description:  Implementation of Newton-Girard formulae, which allows
+ *									the conversion between power sum and elementary
+ *									symmetric polynomial.
  *
  *        Version:  1.0
  *        Created:  8/26/2012 2:22:42 PM
@@ -18,34 +20,36 @@
 #ifndef BRAIN_NEWTONGIRARDFORMULAE_H
 #define BRAIN_NEWTONGIRARDFORMULAE_H
 
-#include <vector>
-#include "VietesFormulae.h"
+#include "Polynomials.h"
 
 namespace msmath
 {
-	typedef std::vector<double> PowerSumVec;
-	
 
+	
+	// Basic principles:
+	// 1. The implementation of Newton-Girard formula should be independent of Vietes formula;
+	// 2. The class is not supposed to store the values of power sums and ESPs.
   class NewtonGirardFormulae
   {
   private:
-    // The highest order of the polynomial is determined by _coef.size()-1.
-    //const PolyCoef& _coef; 
+    // The number of variables, which is also equal to the number of roots in the polynomial equations.
     size_t _var_num;
-    PowerSumVec _power_sum;
-    EleSymPolyVec _ele_sym;
 
-    // Update power sum values given elementary symmetric polynomial.
-		// If empty, just start from the scratch.
-		// Otherwise, build from the current last element.
-    void updatePowerSum();
+		// Vector of power sums at different order number. _power_sum[0] arbitrarily set as 0 since it is not used for calculation.
+    // PowerSumVec _power_sum;
+    // EleSymPolyVec _ele_sym;
 
-    // Similarly, update elementary symmetric polynomial given power sum values
-		void updateElementarySymmetricPoly();
+    // Updating power sum values given elementary symmetric polynomial.
+    void updatePowerSum(PowerSumVec& ps_vec, const EleSymPolyVec& esp_vec);
+
+    // Updating elementary symmetric polynomial given power sum values.
+		void updateElementarySymmetricPoly(const PowerSumVec& ps_vec, EleSymPolyVec& esp_vec);
   
   public:
     // Constructor. 
-		NewtonGirardFormulae() {}
+		// NewtonGirardFormulae() {}
+
+		// Preferred constructor.
 		NewtonGirardFormulae(size_t var_num)
 			: _var_num(var_num) {}
 
@@ -53,38 +57,18 @@ namespace msmath
 		{
 			_var_num = n;
 		}
-		inline double getOrder() 
+		inline double getOrder() const
 		{
 			return _var_num;
 		}
 
-		void setElementarySymmetricPoly(const EleSymPolyVec& ele_vec);
-
-		void setPowerSum(const PowerSumVec& ps_vec);
-
-		inline PowerSumVec getPowerSumVec()
+		// This function will automatically fill the missing value between 
+		// ps_vec and esp_vec.
+		void updateParameters(PowerSumVec& ps_vec, EleSymPolyVec& esp_vec);
+		inline void updateParameters(PolyParam& poly_param)
 		{
-			return _power_sum;
+			this->updateParameters(poly_param.second, poly_param.first);
 		}
-		inline EleSymPolyVec getElementarySymmetricPolyVec()
-		{
-			return _ele_sym;
-		}
-		inline double getPowerSum(const size_t index)
-		{
-			return _power_sum.at(index);
-		}
-		inline double getElementarySymmetricPoly(const size_t index)
-		{
-			return _ele_sym.at(index);
-		}
-
-		void updateToHigherOrder(const size_t k_th_order);
-
-		// The constriction of the definition of e is implemented by this function.
-		void updateUsingVietesFormulae(PolyCoef& coef, const size_t k_th_order);
-		void updateUsingVietesFormulae(PolyCoef& coef);
-
 
   };
 }

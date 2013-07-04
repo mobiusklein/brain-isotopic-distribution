@@ -34,7 +34,7 @@ namespace compo_io
 		vector<pair<Composition, int> > readCSVFile(const string& filename);
 
 		// Output format:
-		void exportDistribution(ostream& os, const Composition& compo, AggregatedIsotopicVariants peaklist);
+		void exportDistribution(ostream& os, const Composition& compo, AggregatedIsotopicVariants peaklist, double avg_mass);
 
 	private:
 		//std::vector<Composition> compo_vec;

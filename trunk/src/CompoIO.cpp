@@ -51,19 +51,23 @@ namespace compo_io
 		return compo_vec;
 	}
 
-	void CompoIO::exportDistribution( ostream& os, const Composition& compo, AggregatedIsotopicVariants peaklist)
+	void CompoIO::exportDistribution( ostream& os, const Composition& compo, AggregatedIsotopicVariants peaklist, double avg_mass)
 	{
 		// First line: Composition
 		os << compo.getCompositionString() << "\n";
 		
 		// Second line: Monoisotopic mass.
-		os << setprecision(15) << compo.getMass() << "\n";
+		os << setprecision(15);
+		os << compo.getMass() << "\n";
 		
 		// Third line: Average mass.
-		os << setprecision(15) << compo.getAverageMass() << "\n";
+		os << compo.getAverageMass() << "\n";
+
+		// Fourth line: Average mass based on the value returned by isotopic peaks.
+		os << avg_mass << "\n";
 
 		// Theoretical isotopic distribution.
-		os << setprecision(15);
+		
 		peaklist.printPeakList<peak_mz>(os);
 
 		os << "\n";

@@ -2,125 +2,81 @@
 
 namespace msmath
 {
-  
-	void NewtonGirardFormulae::updateElementarySymmetricPoly()
+	void NewtonGirardFormulae::updateElementarySymmetricPoly(const PowerSumVec& ps_vec, EleSymPolyVec& esp_vec)
 	{
-		if(_ele_sym.empty()) {
-			// e(0) = 1
-			_ele_sym.push_back(1);
-		}
-		// Matching elementary symmetric polynomial values using power sum values.
-		if(_ele_sym.size() >= _power_sum.size()) {
-			return;
-		}
-
-
-		for(size_t i=_ele_sym.size(); i<_power_sum.size(); i++)
+		// Based on the definition of ESP
+		// k * e(k) = sum(j: 1 to k) [(-1)^(j-1) * e(k-j) * p(j)]
+		// Notice: the size of esp_vec increases during the loop!
+		size_t begin_k = esp_vec.size();
+		size_t end_k = ps_vec.size();
+		for(size_t k = begin_k; k < end_k; k++)
 		{
+			// If k = 0, e(k) = 1.
+			// If k > n, e(k) = 0.
+			if(k == 0) {
+				esp_vec.push_back(1.0);
+				continue;
+			} else if(k > _var_num) {
+				esp_vec.push_back(0.0);
+				continue;
+			}
+			
 			double temp_ele = 0.0;
 			
-			for(size_t j=1; j<=i; j++)
+			for(size_t j=1; j<=k; j++)
 			{
 				int sign = (j%2 == 1 ? 1 : -1);
-				temp_ele += sign * _power_sum.at(j) * _ele_sym.at(i-j); 
+
+				temp_ele += sign * ps_vec.at(j) * esp_vec.at(k-j); 
 			}
 			
-			temp_ele /= i;
+			temp_ele /= k;
 			
-			_ele_sym.push_back(temp_ele);
+			esp_vec.push_back(temp_ele);
 		}
 
 	}
   
-	void NewtonGirardFormulae::updatePowerSum()
+	void NewtonGirardFormulae::updatePowerSum(PowerSumVec& ps_vec, const EleSymPolyVec& esp_vec)
 	{
-	
-		if(_power_sum.empty()) {
-			// p(0) = 0. The value might be changed in the middle of calculation.
-			_power_sum.push_back(0);
-		}
-
-		if(_power_sum.size() >= _ele_sym.size()) {
-			return;
-		}
-
-		for(size_t i=_power_sum.size(); i<_ele_sym.size(); i++)
+		size_t end_k = esp_vec.size();
+		size_t begin_k = ps_vec.size();
+		// p(k) = sum(j: 1 to k-1) [(-1)^(j-1) * e(j) * p(k-j)] + (-1)^k * e(k) * k.
+		for(size_t k= begin_k; k<end_k; k++)
 		{
+			if(k == 0) {
+				ps_vec.push_back(0);
+				continue;
+			}
+
 			double temp_ps = 0.0;
 
-			for(size_t j=1; j<=i; j++)
+			// From 1 to k-1
+			int sign = -1;
+			for(size_t j=1; j<k; j++)
 			{
-				// Temporarily change the value of p(0).
-				_power_sum[0] = j;
-				int sign = (j%2 == 1 ? 1 : -1);
-				temp_ps += sign * _ele_sym.at(j) * _power_sum.at(i-j);
+				sign *= -1;
+				temp_ps += sign * esp_vec.at(j) * ps_vec.at(k-j);
 			}
 
-			_power_sum.push_back(temp_ps);
+			sign *= -1;
+			temp_ps += sign * esp_vec.at(k) * k;
+
+			ps_vec.push_back(temp_ps);
 		}
-		_power_sum[0] = 0;
-	}
-
-	
-	void NewtonGirardFormulae::updateUsingVietesFormulae(PolyCoef& coef, const size_t k_th_order)
-	{
-		// update _var_num.
-		_var_num = coef.size()-1;
-
-		_ele_sym.clear();
 		
-		// e(0) = 1.
-		_ele_sym.push_back(1);
-
-		VietesFormulae formulae(coef);
-		
-		EleSymPolyVec temp_ele_vec = formulae.getElementarySymmetricFunctionFromCoef();
-
-		_ele_sym.insert(_ele_sym.end(), temp_ele_vec.begin(),temp_ele_vec.end());
-
-		//updateToHigherOrder(k_th_order);
-		updatePowerSum();
-
 	}
 
-	void NewtonGirardFormulae::updateUsingVietesFormulae(PolyCoef& coef )
+
+	void NewtonGirardFormulae::updateParameters( PowerSumVec& ps_vec, EleSymPolyVec& esp_vec )
 	{
-		const size_t k = coef.size()-1;
-		this->updateUsingVietesFormulae(coef, k);
+
+		// The default size for esp_vec should be _var_num + 1.
+		if(ps_vec.size() > esp_vec.size())
+			this->updateElementarySymmetricPoly(ps_vec, esp_vec);
+		else if(ps_vec.size() < esp_vec.size())
+			this->updatePowerSum(ps_vec, esp_vec);
+		else
+			; // Do nothing.
 	}
-
-	void NewtonGirardFormulae::updateToHigherOrder(const size_t k_th_order )
-	{
-		if(k_th_order > _var_num) {
-			//_var_num = k_th_order;
-			// Update corresponding power sum values.
-			for(size_t i=_var_num+1; i<=k_th_order; i++)
-			{
-				// Update elementary symmetric functions.
-				_ele_sym.push_back(0);
-			}
-			// Update corresponding power sum values.
-			this->updatePowerSum();
-		} else {
-			// Do nothing:)
-		} 
-	}
-
-	void NewtonGirardFormulae::setElementarySymmetricPoly(const EleSymPolyVec& ele_vec)
-	{
-		_ele_sym = ele_vec;
-		_power_sum.clear();
-		this->updatePowerSum();
-	}
-
-	void NewtonGirardFormulae::setPowerSum(const PowerSumVec& ps_vec)
-	{
-		_power_sum = ps_vec;
-		// The update function will not clean the values. 
-		_ele_sym.clear();
-		this->updateElementarySymmetricPoly();
-	}
-
-
-
 }

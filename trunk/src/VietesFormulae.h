@@ -2,7 +2,7 @@
 	created:	2012/08/27
 	created:	27:8:2012   14:18
 	filename: 	VietesFormulae.h
-	file path:	GAGPL\MATH
+	file path:	MATH
 	file base:	VietesFormulae
 	file ext:	h
 	author:		Han Hu, hh1985@bu.edu
@@ -18,19 +18,10 @@
 #ifndef BRAIN_VIETESFORMULAE_H
 #define BRAIN_VIETESFORMULAE_H
 
-#include <vector>
+#include "Polynomials.h"
 
 namespace msmath
 {
-	// The coefficients is ordered, from a0, a1, ... to an.
-	typedef std::vector<double> PolyCoef;
-	typedef std::vector<double> EleSymPolyVec;
-	/*
-	typedef std::vector<Complex> PolyRoot;
-	*/
-
-	// TBD: Convert roots into elementary symmetric polynomial. 
-	// Convert coefficients into elementary symmetric polynomial.
 	class VietesFormulae
 	{
 	private:
@@ -45,6 +36,7 @@ namespace msmath
 			_coef = coef;
 		}
 
+		// Generating the vector of elementary symmetric polynomial.
 		EleSymPolyVec getElementarySymmetricFunctionFromCoef();
 		
 	};

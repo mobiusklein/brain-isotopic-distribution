@@ -6,7 +6,6 @@ namespace brain
 	void Peak::printout(std::ostream& os) const
 	{
 		std::cout.precision(10);
-		os << "MZ: " << mz << "\t"
-			<< "Intensity: " << intensity << "\t" << std::endl;
+		os << mz << "\t" << intensity << std::endl;
 	}
 }

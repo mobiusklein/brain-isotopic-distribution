@@ -1,48 +1,84 @@
-#include "CompoIO.h"
-#include <boost/make_shared.hpp>
+/********************************************************************
+	created:	2013/07/02
+	created:	2:7:2013   11:17
+	filename: 	IsotopicDistributionTest.cpp
+	file path:	BRAIN\src\test
+	file base:	IsotopicDistributionTest
+	file ext:	cpp
+	author:		Han Hu
+	
+	purpose:	The test file for brain algorithm.  
+						Usage: brain.exe filename
+*********************************************************************/
 
-// argv[0] -- The filename for input.
-// argv[1] -- The filename for output.
+#include "IsotopicDistribution.h"
+#include "CompoIO.h"
+#include <time.h>
+#include <boost/filesystem.hpp>
+
+#pragma warning(disable : 4996)
+
+// argv[1] -- input file.
+using namespace std;
+using namespace brain;
+using namespace compo_io;
+using namespace boost::filesystem;
 
 int main(int argc, char* argv[])
 {
-	using namespace std;
-	using namespace brain;
-	using namespace compo_io;
+	try {
+		string filebase;
+		if(argv[1] == NULL) {
+			cout << "No input file, use example input instead!" << endl;
+			filebase = "./data/test_input.csv";
+		} else
+			filebase = argv[1];
 
-	CompoIO compo_reader;
+		CompoIO compo_io;
+		string infile(filebase);
+		
+		vector<pair<Composition, int> > compo_vec = compo_io.readCSVFile(infile);
 
-	string infile = "./data/test_input.csv";
-	string outfile = "./data/test_output.csv";
+		clock_t t;
 
-	vector<pair<Composition, int> > compo_vec = compo_reader.readCSVFile(infile);
+		//string outfile(filebase);
+		// Parse the input path and generate output file name.
+		path p(filebase);
+		path outfile = p.parent_path();
+		string stem = p.stem().string() + "_result";
 
-	AggregatedIsotopicVariants peaklist;
+		outfile /= stem.append(p.extension().string());
 
-	PeakPtr pk9 = boost::make_shared<Peak>(471.2, 1320.5);
-	peaklist.addPeak(pk9);
+		//outfile.append("_result.csv");
+		std::filebuf fb;
+		fb.open(outfile.c_str(), std::ios::out);
+		ostream os(&fb);
 
-	PeakPtr pk10 = boost::make_shared<Peak>(472.2, 170.6);
-	peaklist.addPeak(pk10);
+		for(vector<pair<Composition, int> >::iterator iter = compo_vec.begin(); iter != compo_vec.end(); iter++)
+		{
+			// Initial time.
+			t = clock();
 
-	PeakPtr pk11 = boost::make_shared<Peak>(473.2, 222222.7);
-	peaklist.addPeak(pk11);
+			IsotopicDistribution iso_dist(iter->first, iter->second);
+			AggregatedIsotopicVariants peakset = iso_dist.getAggregatedIsotopicVariants();
+			double avg_mass = iso_dist.getAverageMass();
 
-	PeakPtr pk12 = boost::make_shared<Peak>(474.2, 26.4);
-	peaklist.addPeak(pk12);
+			// Ending time.
+			t = clock()-t;
+			cout << "It took " << ((double)t)/CLOCKS_PER_SEC << " seconds to calculate " << iter->first.getCompositionString() << endl;
 
-	PeakPtr pk13 = boost::make_shared<Peak>(475.2, 32.5);
-	peaklist.addPeak(pk13);
-
-	std::filebuf fb;
-	fb.open(outfile.c_str(), std::ios::out);
-	ostream os(&fb);
-	compo_reader.exportDistribution(os, compo_vec.at(0).first, peaklist);
-
-	fb.close();
+			compo_io.exportDistribution(os, iter->first, peakset, avg_mass);
+			
+		}
+		fb.close();
+	}
+	catch(std::exception& e)
+	{
+		cout << "Exception: " << e.what() << endl;
+	}
 
 	cout << "The End!" << endl;
-	cin.get();
+	//cin.get();
 
 	return 0;
 }

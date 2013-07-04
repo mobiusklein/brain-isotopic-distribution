@@ -8,8 +8,7 @@
 	author:		Han Hu
 	
 	purpose:	The test file for brain algorithm.  
-						Usage: brain.exe -f filename
-									 brain.exe -c composition
+						Usage: brain.exe filename
 *********************************************************************/
 
 #include "IsotopicDistribution.h"
@@ -28,50 +27,34 @@ using namespace boost::filesystem;
 int main(int argc, char* argv[])
 {
 	try {
-		string filebase;
-		if(argv[1] == NULL) {
-			cout << "No input file, use example input instead!" << endl;
-			filebase = "./data/test_input.csv";
-		} else
-			filebase = argv[1];
-
-		CompoIO compo_io;
-		string infile(filebase);
 		
-		vector<pair<Composition, int> > compo_vec = compo_io.readCSVFile(infile);
+		vector<pair<Composition, int> > compo_vec;
+		Composition compo1("C50H71N12O13"); Composition compo2("C23832H37816N6528O7031S170");
+		compo_vec.push_back(std::make_pair(compo1, 11));
+		compo_vec.push_back(std::make_pair(compo2, 1325));
 
-		IsotopicDistribution iso_dist;
 		clock_t t;
 
-		//string outfile(filebase);
 		// Parse the input path and generate output file name.
-		path p(filebase);
-		path outfile = p.parent_path();
-		string stem = p.stem().string() + "_result";
-
-		outfile /= stem.append(p.extension().string());
-
-		//outfile.append("_result.csv");
-		std::filebuf fb;
-		fb.open(outfile.c_str(), std::ios::out);
-		ostream os(&fb);
-
 		for(vector<pair<Composition, int> >::iterator iter = compo_vec.begin(); iter != compo_vec.end(); iter++)
 		{
 			// Initial time.
 			t = clock();
 
-			iso_dist.setVaraibles(iter->first, iter->second);
+			IsotopicDistribution iso_dist(iter->first, iter->second);
 			AggregatedIsotopicVariants peakset = iso_dist.getAggregatedIsotopicVariants();
 
 			// Ending time.
 			t = clock()-t;
 			cout << "It took " << ((double)t)/CLOCKS_PER_SEC << " seconds to calculate " << iter->first.getCompositionString() << endl;
 
-			compo_io.exportDistribution(os, iter->first, peakset);
-			
+			cout << "Composition: " << iter->first.getCompositionString() << endl;
+			cout << "Monoisotopic mass: " << iter->first.getMass() << endl;
+			cout << "Average mass: " << iter->first.getAverageMass() << endl;
+			cout << "Estimated average mass: " << iso_dist.getAverageMass() << endl;
+			peakset.printPeakList<peak_mz>(cout);
+	
 		}
-		fb.close();
 	}
 	catch(std::exception& e)
 	{
