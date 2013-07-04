@@ -10,10 +10,12 @@ SET(PARAM
 	Param.h	Param.cpp
 )
 SET(VTFORMULAE
+	Polynomials.h
 	VietesFormulae.h	VietesFormulae.cpp
 )
 SET(NGFORMULAE
 	${VTFORMULAE}
+	Polynomials.h
 	NewtonGirardFormulae.h	NewtonGirardFormulae.cpp
 )
 SET(PEAK
@@ -29,28 +31,28 @@ SET(COMPOSITION
 	${PERIODICTABLE} 
 	Composition.h	Composition.cpp
 )
-SET(IO
-	${COMPOSITION}
+
+SET(ISODIST
 	${PEAK}
 	${PARAM}
-	CompoIO.h	CompoIO.cpp
-)
-SET(ISODIST
-	${IO}
 	${NGFORMULAE}
 	${COMPOSITION}
 	IsotopicDistribution.h IsotopicDistribution.cpp
 	IsotopicConstants.h IsotopicConstants.cpp
 )
+SET(IO
+	${ISODIST}
+	CompoIO.h	CompoIO.cpp
+)
 
 #ADD_EXECUTABLE(param ${PARAM} ./test/ParamTest.cpp)
 #ADD_EXECUTABLE(peak ${PEAK} ./test/PeakTest.cpp)
-#ADD_EXECUTABLE(vietesformulae ${VTFORMULAE} ./test/VietesFormulaeTest.cpp)
-ADD_EXECUTABLE(useBRAIN ${ISODIST} ./test/IsotopicDistributionTest.cpp)
-#ADD_EXECUTABLE(newtonformulae ${NGFORMULAE} ./test/NewtonGirardFormulaeTest.cpp)
+ADD_EXECUTABLE(vietesformulae ${VTFORMULAE} ./test/VietesFormulaeTest.cpp)
+ADD_EXECUTABLE(isodist ${ISODIST} ./test/IsotopicDistributionTest.cpp)
+ADD_EXECUTABLE(newtonformulae ${NGFORMULAE} ./test/NewtonGirardFormulaeTest.cpp)
 #ADD_EXECUTABLE(periodictable ${PERIODICTABLE} ./test/PeriodicTableTest.cpp)
 #ADD_EXECUTABLE(composition ${COMPOSITION} ./test/CompositionTest.cpp)
-#ADD_EXECUTABLE(compoio ${IO} ./test/CompoIOTest.cpp)
+ADD_EXECUTABLE(useBRAIN ${IO} ./test/CompoIOTest.cpp)
 
 INSTALL(TARGETS useBRAIN
 		RUNTIME DESTINATION ${PROJECT_BINARY_DIR}/bin

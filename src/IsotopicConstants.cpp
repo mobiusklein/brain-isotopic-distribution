@@ -1,23 +1,20 @@
 #include "IsotopicConstants.h"
-#include "PeriodicTable.h"
 #include "NewtonGirardFormulae.h"
 #include <numeric>
+#include <stdexcept>
 
 namespace brain 
 {
-	IsotopicConstants& IsotopicConstants::instance()
-	{
-		static IsotopicConstants iso_const;
-		return iso_const;
-	}
-
-	NewtonGirardFormulae IsotopicConstants::updateCoefsOfElement( const Element& e, bool has_mass /*= false*/ )
+	using namespace std;
+	PolyParam IsotopicConstants::updateCoefsOfElement( const Element& e, bool has_mass /*= false*/ )
 	{
 		// Get the coefficients of given element
 		IsotopeSetSequential::reverse_iterator it = e.isotopes.rbegin();
-		// Get the highest isotope neutron shift.
+		
+		// Get the highest order of isotope neutron shift.
 		size_t max_n = it->neutron_shift;
 
+		// temp_vec stores the polynomial coef.
 		std::vector<double> temp_vec;
 
 		for(; it != e.isotopes.rend(); it++)
@@ -45,16 +42,20 @@ namespace brain
 
 		}
 
-		NewtonGirardFormulae newton;
+		VietesFormulae viete(temp_vec);
+		EleSymPolyVec esp_vec = viete.getElementarySymmetricFunctionFromCoef();
+		NewtonGirardFormulae newton(temp_vec.size()-1);
+		PowerSumVec ps_vec;
 
-		newton.updateUsingVietesFormulae(temp_vec);
-		newton.updateToHigherOrder(_var_num);		
+		newton.updateParameters(ps_vec, esp_vec);	
 
-		return newton;
+		return make_pair(esp_vec, ps_vec);
 	}
 
 	void IsotopicConstants::updateOrder( size_t order )
 	{
+		if(order <= _var_num) return;
+
 		_var_num = order;
 		update();
 	}
@@ -64,8 +65,21 @@ namespace brain
 		ElementConstants::iterator it = _ele_const.begin();
 		for(; it != _ele_const.end(); it++)
 		{
-			it->second.first.updateToHigherOrder(_var_num);
-			it->second.second.updateToHigherOrder(_var_num);
+			// No need to update.
+			if(_var_num <= it->second.nth_order)
+				continue;
+
+			for(size_t i = it->second.nth_order+1; i <= _var_num; i++)
+			{
+				it->second.ele_param.first.push_back(0.0);
+				it->second.ele_mass_param.first.push_back(0.0);
+			}
+			
+			// Updating nth_order.
+			it->second.nth_order = it->second.ele_param.first.size()-1;
+			NewtonGirardFormulae newton(it->second.nth_order);
+			newton.updateParameters(it->second.ele_param);
+			newton.updateParameters(it->second.ele_mass_param);
 		}
 	}
 
@@ -75,15 +89,45 @@ namespace brain
 		ElementConstants::iterator it = _ele_const.find(symbol);
 		if(it!=_ele_const.end())
 			return;
-
-		PeriodicTable& ptable = PeriodicTable::Instance();
-		//ptable.load();
+		
 		Element ele = ptable.getElementBySymbol(symbol);
 
 		PhiConstants phi_const;
-		phi_const.first = this->updateCoefsOfElement(ele);
-		phi_const.second = this->updateCoefsOfElement(ele, true);
+		phi_const.nth_order = ele.isotopes.rbegin()->neutron_shift;;
+		phi_const.ele_param = this->updateCoefsOfElement(ele);
+		phi_const.ele_mass_param = this->updateCoefsOfElement(ele, true);
 
 		_ele_const.insert(std::make_pair(symbol, phi_const));
 	}
+
+	double IsotopicConstants::getNthElementPowerSum( const std::string& symbol, size_t order )
+	{
+		ElementConstants::iterator it = _ele_const.find(symbol);
+		
+		if(it == _ele_const.end())
+			throw runtime_error("The specified element is not found!");
+
+		PowerSumVec& ps_vec = it->second.ele_param.second;
+		
+		if(ps_vec.size()-1 < order )
+			throw runtime_error("The order number is invalid! Update it first");
+
+		return ps_vec.at(order);
+	}
+
+	double IsotopicConstants::getNthModifiedElementPowerSum( const std::string& symbol, size_t order )
+	{
+		ElementConstants::iterator it = _ele_const.find(symbol);
+
+		if(it == _ele_const.end())
+			throw runtime_error("The specified element is not found!");
+
+		PowerSumVec& ps_vec = it->second.ele_mass_param.second;
+
+		if(ps_vec.size()-1 < order )
+			throw runtime_error("The order number is invalid! Update it first");
+
+		return ps_vec.at(order);
+	}
+
 }

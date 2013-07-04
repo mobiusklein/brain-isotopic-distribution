@@ -19,17 +19,15 @@ namespace msmath
 		EleSymPolyVec ele_vec;
 		
 		// Highest order of the polynomial.
-		const size_t max_n = _coef.size()-1;
+		// const size_t max_n = _coef.size()-1;
 
-		// e0 = 1 based on Newton-Girard formulae.
+		// e0 = 1 based on the definition of elementary symmetric polynomial.
 		// ele_vec.push_back(1);
 
-		// Start from a(n).
-		//double a_n = coefficients.back();
-		for(size_t i = 1; i<=max_n; i++)
+		for(size_t i = 0; i< _coef.size(); i++)
 		{
 			int sign = (i%2 == 0 ? 1 : -1);
-			double ele_value = sign * _coef.at(max_n - i) / _coef.back(); 
+			double ele_value = sign * _coef.at(_coef.size() - 1 - i) / _coef.back(); 
 			ele_vec.push_back(ele_value);
 		}
 

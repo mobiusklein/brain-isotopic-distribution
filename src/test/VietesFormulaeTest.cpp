@@ -11,7 +11,6 @@
 *********************************************************************/
 
 #include "VietesFormulae.h"
-#include <boost/foreach.hpp>
 #include <iostream>
 
 int main()
@@ -25,9 +24,14 @@ int main()
 	VietesFormulae formulae(poly_eq);
 	EleSymPolyVec ele_values = formulae.getElementarySymmetricFunctionFromCoef();
 
+	// The correct value should be: 1, -5, 0, -2, 3.
 	for(size_t i=0; i<ele_values.size(); i++)
 	{
 		cout << i << ": " << ele_values.at(i) << endl;
 	}
+
+	cout << "The End!" << endl;
+
+	cin.get();
 
 }

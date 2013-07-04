@@ -16,25 +16,50 @@
  * =====================================================================================
  */
 #include "NewtonGirardFormulae.h"
+#include "VietesFormulae.h"
 #include <iostream>
 
+using namespace msmath;
+using namespace std;
+
 int main() {
-  // Create a vector of coefficient for n-order polynomial equation.
-
-	using namespace msmath;
-	using namespace std;
-
+  
+	// Create a vector of coefficient for n-order polynomial equation.
 	double mycoef[] = {3, 2, 0, 5, 1};
   PolyCoef poly_eq(mycoef, mycoef + sizeof(mycoef) / sizeof(double));
 
-  NewtonGirardFormulae formulae;
-	formulae.updateUsingVietesFormulae(poly_eq);
-	formulae.updateToHigherOrder(7);
+	VietesFormulae viete(poly_eq);
+	EleSymPolyVec esp_vec = viete.getElementarySymmetricFunctionFromCoef();
+  
+	NewtonGirardFormulae newton(poly_eq.size()-1);
+	PowerSumVec ps_vec;
+	newton.updateParameters(ps_vec, esp_vec);
 
-  for(int i=0; i<7; i++) {
-    cout << "ID\tPowersum\tElementary symmetric polynomial" << endl;
-    cout << i << "\t" << formulae.getPowerSum(i) << "\t" << formulae.getElementarySymmetricPoly(i) << endl;
-  }
+	cout << "Power sum size: " << ps_vec.size() << endl;
+	copy(ps_vec.begin(), ps_vec.end(), ostream_iterator<double>(cout, "\n"));
+	// 4 -5, 25, -131, 653
 
+	cout << "ESP size: " << esp_vec.size() << endl;
+	copy(esp_vec.begin(), esp_vec.end(), ostream_iterator<double>(cout, "\n"));
+	// 1, -5, 0, -2, 3
+
+	cout << "************************************************" << endl;
+	cout << "*       Test 2: increasing order               *" << endl;
+	cout << "************************************************" << endl;
+	
+	for(size_t i = 0; i < 3; i++)
+		esp_vec.push_back(0.0);
+
+	newton.updateParameters(ps_vec, esp_vec);
+	cout << "Power sum size: " << ps_vec.size() << endl;
+	copy(ps_vec.begin(), ps_vec.end(), ostream_iterator<double>(cout, "\n"));
+	// 4, -5, 25, -131, 653, -3300, 16687, -84348
+
+	cout << "ESP size: " << esp_vec.size() << endl;
+	copy(esp_vec.begin(), esp_vec.end(), ostream_iterator<double>(cout, "\n"));
+	// 1, -5, 0, -2, 3, 0, 0, 0
+
+	cout << "The End!" << endl;
+ 
 	cin.get();
 }

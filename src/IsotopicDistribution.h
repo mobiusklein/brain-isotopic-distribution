@@ -32,6 +32,36 @@ namespace brain
 	// Implementation of BRAIN algorithm.
 	class IsotopicDistribution
 	{
+	public:
+		IsotopicDistribution()
+			: _iso_const(IsotopicConstants::Instance()) {}
+		//IsotopicDistribution(size_t order)
+		//: _iso_const(IsotopicConstants::Instance()), _var_num(order) {}
+		IsotopicDistribution(Composition& compo, int order = -1)
+			: _iso_const(IsotopicConstants::Instance()), _compo(compo)
+		{
+			// Implicitly build the distribution.
+			createMonoPeak();
+			setOrder(order);
+		}
+
+		EleSymPolyVec calculateProbabilityVec();
+
+		std::vector<double> calculateCenterMassVec(const EleSymPolyVec& prob_vec);
+
+		// The peak cluster can be adjusted by charge. Notice that the charge here can be either positive or negative.
+		AggregatedIsotopicVariants getAggregatedIsotopicVariants(int signed_charge = 0);
+
+		inline double getAverageMass() const
+		{
+			return avg_mass;
+		}
+
+		inline std::string getCompositionString() const
+		{
+			return _compo.getCompositionString();
+		}
+
 	private:
 		// phi_vec[0] should be assigned 0.
 		IsotopicConstants& _iso_const;
@@ -40,7 +70,12 @@ namespace brain
 		Composition _compo;
 		
 		Peak monopeak;
-		
+
+		// The average mass calculated based on returned isotopic peaks. 
+		// It can be used to control the number of calculated peaks.
+		double avg_mass;
+
+		// The number of isotopic variants.
 		size_t _var_num;
 
 		// The phi_vec[index] has been assigned, just return the value,
@@ -54,36 +89,10 @@ namespace brain
 		// Calculating the information of monoisotopic peak. 
 		void createMonoPeak();
 
-		// Explicitly build the distribution.
-		inline void setComposition(Composition& compo)
-		{
-			_compo = compo;
-			createMonoPeak();
-		}
-
 		void setOrder(int order);
 
-	public:
-		IsotopicDistribution()
-			: _iso_const(IsotopicConstants::instance()) {}
-		IsotopicDistribution(size_t order)
-			: _iso_const(IsotopicConstants::instance()), _var_num(order) {}
-		IsotopicDistribution(Composition& compo, size_t order = 7)
-			: _iso_const(IsotopicConstants::instance()), _compo(compo), _var_num(order)
-		{
-			// Implicitly build the distribution.
-			createMonoPeak();
-		}
+		void updateIsotopicConstants();
 
-		// The input includes composition and order number.
-		void setVaraibles(Composition& compo, int order = -1);
-		
-		EleSymPolyVec calculateProbabilityVec();
-
-		std::vector<double> calculateCenterMassVec(const EleSymPolyVec& prob_vec);
-
-		// The peak cluster can be adjusted by charge. Notice that the charge here can be either positive or negative.
-		AggregatedIsotopicVariants getAggregatedIsotopicVariants(int signed_charge = 0);
 
 	};
 
