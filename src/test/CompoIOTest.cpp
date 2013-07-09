@@ -19,6 +19,7 @@
 #pragma warning(disable : 4996)
 
 // argv[1] -- input file.
+// argv[2] -- operator
 using namespace std;
 using namespace brain;
 using namespace compo_io;
@@ -54,6 +55,10 @@ int main(int argc, char* argv[])
 		fb.open(outfile.c_str(), std::ios::out);
 		ostream os(&fb);
 
+		int num_const = 3000;
+		IsotopicDistribution init_dist(Composition("C3000H3000O3000N3000S3000"), num_const);
+		cout << "The constants for the first " << num_const << " has been calculated!" << endl;
+
 		for(vector<pair<Composition, int> >::iterator iter = compo_vec.begin(); iter != compo_vec.end(); iter++)
 		{
 			// Initial time.
@@ -62,9 +67,13 @@ int main(int argc, char* argv[])
 			IsotopicDistribution iso_dist(iter->first, iter->second);
 			AggregatedIsotopicVariants peakset = iso_dist.getAggregatedIsotopicVariants();
 			double avg_mass = iso_dist.getAverageMass();
+			
+			//iso_dist.clear();
 
 			// Ending time.
+			
 			t = clock()-t;
+			cout << setprecision(10);
 			cout << "It took " << ((double)t)/CLOCKS_PER_SEC << " seconds to calculate " << iter->first.getCompositionString() << endl;
 
 			compo_io.exportDistribution(os, iter->first, peakset, avg_mass);

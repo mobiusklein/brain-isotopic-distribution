@@ -78,6 +78,7 @@ namespace brain
 		inline void clear()
 		{
 			_ele_const.clear();
+			_var_num = 0;
 		}
 
 		// Getting the constants for calculating probabilities.
