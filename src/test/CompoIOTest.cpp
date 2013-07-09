@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
 			
 			t = clock()-t;
 			cout << setprecision(10);
-			cout << "It took " << ((double)t)/CLOCKS_PER_SEC << " seconds to calculate " << iter->first.getCompositionString() << endl;
+			cout << "It took " << ((double)t)/CLOCKS_PER_SEC << " seconds to calculate " << iter->first.getCompositionString() << " " << iter->second << " peaks!" << endl;
 
 			compo_io.exportDistribution(os, iter->first, peakset, avg_mass);
 			
