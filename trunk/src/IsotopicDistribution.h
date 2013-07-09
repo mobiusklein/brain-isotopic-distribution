@@ -62,6 +62,11 @@ namespace brain
 			return _compo.getCompositionString();
 		}
 
+		inline void clear()
+		{
+			_iso_const.clear();
+		}
+
 	private:
 		// phi_vec[0] should be assigned 0.
 		IsotopicConstants& _iso_const;

@@ -109,7 +109,7 @@ namespace brain
 
 		PowerSumVec& ps_vec = it->second.ele_param.second;
 		
-		if(ps_vec.size()-1 < order )
+		if(ps_vec.size() <= order )
 			throw runtime_error("The order number is invalid! Update it first");
 
 		return ps_vec.at(order);
@@ -124,7 +124,7 @@ namespace brain
 
 		PowerSumVec& ps_vec = it->second.ele_mass_param.second;
 
-		if(ps_vec.size()-1 < order )
+		if(ps_vec.size() <= order )
 			throw runtime_error("The order number is invalid! Update it first");
 
 		return ps_vec.at(order);
